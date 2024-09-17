@@ -17,7 +17,7 @@ token_to_str = {i : s for s,i in str_to_token.items()}
 # STEP 1: Create an (empty) map of each char pairing and its likelihood
 N = torch.zeros((len(chars) + 1, len(chars) + 1), dtype=torch.int32)
 
-# training set of ~~bi~~trigrams
+# training set of bigrams
 xs, ys = [], []
 for p in pokemon:
     chs = ['→'] + list(p) + ['→']
