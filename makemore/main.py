@@ -33,7 +33,7 @@ num = xs.nelement()
 print('number of examples: ', num)
 
 # initialize the 'network'
-g = torch.Generator().manual_seed(32767)
+g = torch.Generator().manual_seed(1337)
 W = torch.randn((len(chars) + 1, len(chars) + 1), generator=g, requires_grad=True)  # awesome mega matrix of weights
 # 👆 worth noting `requires_grad` is False by default, but it needs to be true to support backpropogation
 
