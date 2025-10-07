@@ -1,5 +1,4 @@
 import torch
-import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
 # only contains pokemon up to gen V, none of the fake new ones 🥱
