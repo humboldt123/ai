@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 
 class LinearNoiseScheduler:
     def __init__(self, num_timesteps, beta_start, beta_end):
@@ -59,6 +60,8 @@ class LinearNoiseScheduler:
         x0 = torch.clamp(x0, -1., max=1.)
         
         # Compute posterior mean
+        # That's the expected value of the previous timestep's image
+        # given the current noisy image and the model's noise prediction.
         
         # $\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{\beta_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_\theta(x_t, t)\right)$
         
@@ -87,3 +90,61 @@ class LinearNoiseScheduler:
             # Also return $x_0$ for funsies
 
             return mean + sigma*z, x0
+        
+
+# `TimeEmbeddingBlock`
+# Takes a 1D tensor of timesteps of size batch_size (B,)
+# and gives us a time embedding of (B * t_emb_dim)
+
+
+
+def get_time_embedding(time_steps, t_emb_dim):
+
+    # so basically, $\sin(pos / 10000^{2i/d_{\text{model}}})$ AND $\cos(pos / 10000^{2i/d_{\text{model}}})$
+    
+    factor = 10000 ** ((torch.arange(
+        start=0, end=t_emb_dim//2, device=time_steps.device) / (t_emb_dim // 2)
+    ))
+    t_emb = time_steps[:, None].repeat(1, t_emb_dim // 2) / factor
+    t_emb = torch.cat(tensors=[torch.sin(t_emb), torch.cos(t_emb)], dim=-1)
+    return t_emb
+
+
+class DownBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, t_emb_dim, down_sample, num_heads):
+        super().__init__()
+        self.down_sample = down_sample
+        
+        # `nn.Sequential(a, b c)` is in place of `x = c(b(a(x)))`
+        self.resnet_conv_first = nn.Sequential(
+            # Normalization that splits channels into groups and normalizes within each group.
+            nn.GroupNorm(num_groups=8, in_channels=in_channels),
+
+            # [how i feel not having to implement that swiglu bullshit](https://tenor.com/view/ishowspeed-try-not-to-laugh-gif-7682731162751353849)
+            nn.SiLU(),
+            
+            # applies a learnable filter that slides across an image to extract features
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        )
+
+        self.t_emb_layers = nn.Sequential(
+            nn.SilU(),
+            nn.Linear(t_emb_dim, out_channels)
+        )
+
+        self.resnet_conv_second = nn.Sequential(
+            nn.GroupNorm(num_groups=8, in_channels=out_channels),
+            nn.SiLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        )
+
+        self.attention_norm = nn.GroupNorm(8, out_channels)
+        self.attention = nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
+        self.residual_input_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+        # residual ensures input of entire resnet block can be added to output of last conv layer
+        self.down_sample_conv = nn.Conv2d(out_channels, out_channels, kernel_size=4,
+                                         stride=2, padding=1) if self.down_sample else nn.Identity() # $I$ -> no-op.
+    
+    def forward(self, x, t_emb):
+        pass
+
