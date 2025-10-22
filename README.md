@@ -10,4 +10,4 @@ This repository contains a by no means comprehensive list of projects I've been 
 | [diffusion](./diffusion)              | Messing around with diffusion models              | October 21st, 2025    |
 
 
-![so cute](hhttps://i.imgur.com/BEGvAYy.png)
+![so cute](./epoch_2.png)

@@ -2,4 +2,5 @@ alot*
 mnist*
 train*
 data/*
+default/*
 !data/pull.ipynb
