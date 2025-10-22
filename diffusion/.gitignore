@@ -1,0 +1,5 @@
+alot*
+mnist*
+train*
+data/*
+!data/pull.ipynb
