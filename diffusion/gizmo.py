@@ -119,7 +119,7 @@ class DownBlock(nn.Module):
         # `nn.Sequential(a, b c)` is in place of `x = c(b(a(x)))`
         self.resnet_conv_first = nn.Sequential(
             # Normalization that splits channels into groups and normalizes within each group.
-            nn.GroupNorm(num_groups=8, in_channels=in_channels),
+            nn.GroupNorm(num_groups=8, num_channels=in_channels),
 
             # [how i feel not having to implement that swiglu bullshit](https://tenor.com/view/ishowspeed-try-not-to-laugh-gif-7682731162751353849)
             nn.SiLU(),
@@ -134,7 +134,7 @@ class DownBlock(nn.Module):
         )
 
         self.resnet_conv_second = nn.Sequential(
-            nn.GroupNorm(num_groups=8, in_channels=out_channels),
+            nn.GroupNorm(num_groups=8, num_channels=out_channels),
             nn.SiLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         )
@@ -185,12 +185,12 @@ class MidBlock(nn.Module):
         
         self.resnet_conv_first = nn.ModuleList([
             nn.Sequential(
-                nn.GroupNorm(num_groups=8, in_channels=in_channels),
+                nn.GroupNorm(num_groups=8, num_channels=in_channels),
                 nn.SiLU(),
                 nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
             ),
             nn.Sequential(
-                nn.GroupNorm(num_groups=8, out_channels=out_channels),
+                nn.GroupNorm(num_groups=8, num_channels=out_channels),
                 nn.SiLU(),
                 nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
             )
@@ -208,18 +208,18 @@ class MidBlock(nn.Module):
         ])
         self.resnet_conv_second = nn.ModuleList([
             nn.Sequential(
-                nn.GroupNorm(num_groups=8, out_channels=out_channels),
+                nn.GroupNorm(num_groups=8, num_channels=out_channels),
                 nn.SiLU(),
                 nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
             ),
             nn.Sequential(
-                nn.GroupNorm(num_groups=8, out_channels=out_channels),
+                nn.GroupNorm(num_groups=8, num_channels=out_channels),
                 nn.SiLU(),
                 nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
             )
         ])
 
-        self.attention_norm = nn.GroupNorm(num_groups=8, out_channels=out_channels)
+        self.attention_norm = nn.GroupNorm(num_groups=8, num_channels=out_channels)
         self.attention = nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
         self.residual_input_conv = nn.ModuleList([
             nn.Conv2d(in_channels, out_channels, kernel_size=1),
@@ -272,7 +272,7 @@ class UpBlock(nn.Module):
         self.up_sample = up_sample
         
         self.resnet_conv_first = nn.Sequential(
-            nn.GroupNorm(num_groups=8, in_channels=in_channels),
+            nn.GroupNorm(num_groups=8, num_channels=in_channels),
             nn.SiLU(),
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         )
@@ -283,12 +283,12 @@ class UpBlock(nn.Module):
         )
         
         self.resnet_conv_second = nn.Sequential(
-            nn.GroupNorm(num_groups=8, out_channels=out_channels),
+            nn.GroupNorm(num_groups=8, num_channels=out_channels),
             nn.SiLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         )
         
-        self.attention_norm = nn.GroupNorm(num_groups=8, out_channels=out_channels)
+        self.attention_norm = nn.GroupNorm(num_groups=8, num_channels=out_channels)
         self.attention = nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
         self.residual_input_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
 
