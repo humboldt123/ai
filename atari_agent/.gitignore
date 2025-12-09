@@ -1,0 +1,13 @@
+images/
+checkpoints/
+brickbreaker/checkpoints
+demonattack/checkpoints
+
+brickbreaker/*.json
+brickbreaker/*.gif
+brickbreaker/*.png
+
+
+demonattack/*.json
+demonattack/*.gif
+demonattack/*.png
